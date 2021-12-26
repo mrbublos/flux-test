@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flux
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: pg
+          image: docker.io/postgres:14.1
+        - name: app
+          image: registry.kube-system.svc.cluster.local:5000/flux:1.0
