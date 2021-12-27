@@ -1,13 +1,71 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: flux
+  name: postgres
 spec:
   replicas: 1
   template:
+    metadata:
+      labels:
+        app: postgress
     spec:
       containers:
         - name: pg
           image: docker.io/postgres:14.1
-        - name: app
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: test
+            - name: POSTGRES_USER
+              value: test
+            - name: POSTGRES_PASSWORD
+              value: test
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  ports:
+    - port: 5432
+  selector:
+    app: postgres
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flux
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      containers:
+        - name: flux
           image: registry.kube-system.svc.cluster.local:5000/flux:1.0
+          ports:
+            - containerPort: 8080
+          env:
+            - name: POSTGRES_DB
+              value: test
+            - name: POSTGRES_USER
+              value: test
+            - name: POSTGRES_PASSWORD
+              value: test
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp
+spec:
+  type: NodePort
+  ports:
+    - nodePort: 31317
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: webapp
